@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import vtk
+import numpy
+from numpy import genfromtxt
 
 
 # Callback to animate the pieces of the puzzle
@@ -8,23 +10,30 @@ class animatePiecesCallback():
     def __init__(self):
         self.delta = 50 / 2000
         self.step = 0
+        self.index = 0;
 
     def execute(self, obj, event):
+        if (self.index >= len(self.shapes)):
+            return
         if (self.step < 2000):
             i = 0
-            for shape in self.shapes:
-                v = [sub * -1 for sub in self.vectors[i]]
-                for cubeActor in shape:
-                    cubeActor.SetPosition(
-                        cubeActor.GetPosition()[0] + self.delta * v[0],
-                        cubeActor.GetPosition()[1] + self.delta * v[1],
-                        cubeActor.GetPosition()[2] + self.delta * v[2],
-                    )
-                i += 1
+            #for shape in self.shapes:
+            shape = self.shapes[self.index]
+            v = [sub * -1 for sub in self.vectors[self.index]]
+            for cubeActor in shape:
+                cubeActor.SetPosition(
+                    cubeActor.GetPosition()[0] + self.delta * v[0],
+                    cubeActor.GetPosition()[1] + self.delta * v[1],
+                    cubeActor.GetPosition()[2] + self.delta * v[2],
+                )
+            i += 1
 
             self.step += 50
             iren = obj
             iren.GetRenderWindow().Render()
+        else:
+            self.step = 0
+            self.index = self.index + 1
 
 
 COLORS = [
@@ -38,11 +47,10 @@ COLORS = [
 ]
 COLORS[:] = [[ele / 255 for ele in sub] for sub in COLORS]
 
-stages = [
-    [3, 0, 0, 2, 2, 2, 1, 1, 1],
-    [3, 5, 0, 3, 5, 2, 3, 1, 4],
-    [6, 6, 0, 6, 5, 4, 6, 5, 4]
-]
+stages = genfromtxt('solution.txt', delimiter=' ', dtype = (int))
+
+my_data = genfromtxt('solution.txt', delimiter=' ', dtype = (int))
+print(my_data)
 
 
 def createCubeActor(x, y, z):
@@ -144,9 +152,9 @@ ren1.AddActor(actor2)
 axes = vtk.vtkAxesActor()
 #  The axes are positioned with a user transform
 axes.SetUserTransform(transform)
-axes.SetXAxisLabelText('')
-axes.SetYAxisLabelText('')
-axes.SetZAxisLabelText('')
+# axes.SetXAxisLabelText('')
+# axes.SetYAxisLabelText('')
+# axes.SetZAxisLabelText('')
 
 
 ren1.AddActor(axes)
