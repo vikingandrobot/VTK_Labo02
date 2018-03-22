@@ -4,75 +4,39 @@ import vtk
 from shape_creation import createShapes
 from numpy import genfromtxt
 
+ids = genfromtxt('solution.txt', delimiter=' ', dtype=(int))
 
-stages = genfromtxt('solution.txt', delimiter=' ', dtype = (int))
+# Create shapes from ids
+shapes = createShapes(ids)
 
+renderers = []
+for renNumber in range(0, 8):
+    # Renderer viewport coordinates
+    x = 0 if renNumber % 2 == 0 else 0.5
+    y = (1 - 0.25 * (renNumber // 2)) - 0.25
 
-def createCubeActor(x, y, z):
-    cube = vtk.vtkCubeSource()
-    coneMapper = vtk.vtkPolyDataMapper()
-    coneMapper.SetInputConnection(cube.GetOutputPort())
-    cubeActor = vtk.vtkActor()
-    cubeActor.SetMapper(coneMapper)
-    cubeActor.SetPosition([x, y, z])
-    return cubeActor
+    # Create a VtkRenderer and set its coordinates, background and add it
+    # to our list
+    ren = vtk.vtkRenderer()
+    ren.SetViewport(x, y, x + 0.5, y + 0.25)
+    ren.SetBackground(0.95, 0.95, 0.95)
+    renderers.append(ren)
 
-
-def tShape():
-
-    tShape = []
-
-    for x in range(0, 4):
-        cube = vtk.vtkCubeSource()
-        coneMapper = vtk.vtkPolyDataMapper()
-        coneMapper.SetInputConnection(cube.GetOutputPort())
-        cubeActor = vtk.vtkActor()
-        cubeActor.SetMapper(coneMapper)
-        tShape.append(cubeActor)
-
-    tShape[0].SetPosition([0, 0, 0])
-    tShape[1].SetPosition([1, 0, 0])
-    tShape[2].SetPosition([2, 0, 0])
-    tShape[3].SetPosition([1, 1, 0])
-
-    return tShape
-
-
-shapes = createShapes(stages)
-
-
-ren1 = vtk.vtkRenderer()
-ren1.SetBackground(0.95, 0.95, 0.95)
+    # Add the cubes to the renderers
+    if (renNumber > 0):
+        for shapeNumber in range(0, renNumber):
+            for cube in shapes[shapeNumber]:
+                renderers[renNumber].AddActor(cube)
 
 
 
-for shape in shapes:
-    for cube in shape:
-        ren1.AddActor(cube)
 
 centerX = 1
 centerY = 1
 centerZ = 1
 
-translateVectors = []
-
-for shape in shapes:
-    translateVector = [0, 0, 0]
-    for cubeActor in shape:
-        v = cubeActor.GetPosition()
-        translateVector[0] += v[0] - centerX
-        translateVector[1] += v[1] - centerY
-        translateVector[2] += v[2] - centerZ
-
-    for cubeActor in shape:
-        cubeActor.SetPosition(cubeActor.GetPosition()[0] + translateVector[0],
-        cubeActor.GetPosition()[1] + translateVector[1],
-        cubeActor.GetPosition()[2] + translateVector[2])
-
-    translateVectors.append(translateVector)
-
 transform = vtk.vtkTransform()
-transform.Translate(1.0, 1.0, 1.0)
+transform.Translate(-1.5, -1.5, -1.5)
 
 # outline
 outlineCube = vtk.vtkCubeSource()
@@ -85,29 +49,38 @@ mapper2 = vtk.vtkPolyDataMapper()
 mapper2.SetInputConnection(outline.GetOutputPort())
 actor2 = vtk.vtkActor()
 actor2.SetMapper(mapper2)
-#actor2.SetPosition(1, 1, 1)
+actor2.SetPosition(1, 1, 1)
 actor2.GetProperty().SetColor(0, 0, 0)
-actor2.SetUserTransform(transform)
-# assign actor to the renderer
-ren1.AddActor(actor2)
+# actor2.SetUserTransform(transform)
 
 axes = vtk.vtkAxesActor()
 #  The axes are positioned with a user transform
-axes.SetUserTransform(transform)
-# axes.SetXAxisLabelText('')
-# axes.SetYAxisLabelText('')
-# axes.SetZAxisLabelText('')
-
-
-ren1.AddActor(axes)
+#axes.SetUserTransform(vtk.vtkTransform().Translate(12, -1, -1))
+# assign actor to the renderer
+for renderer in renderers:
+    renderer.AddActor(actor2)
+    renderer.AddActor(axes)
 #
 # Finally we create the render window which will show up on the screen
 # We put our renderer into the render window using AddRenderer. We also
 # set the size to be 300 pixels by 300.
 #
 renWin = vtk.vtkRenderWindow()
-renWin.AddRenderer(ren1)
-renWin.SetSize(1200, 800)
+for ren in renderers:
+    renWin.AddRenderer(ren)
+renWin.SetSize(1200, 1700)
+
+# Set the same camera for every renderer
+mainCamera = None
+for renderer in renderers:
+    if mainCamera is None:
+        mainCamera = renderer.GetActiveCamera()
+    else:
+        renderer.SetActiveCamera(mainCamera)
+
+mainCamera.SetPosition(0, 2, 13)
+mainCamera.Azimuth(45)
+mainCamera.Elevation(20)
 
 #
 # The vtkRenderWindowInteractor class watches for events (e.g., keypress,

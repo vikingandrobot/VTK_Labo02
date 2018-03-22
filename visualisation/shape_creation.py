@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import vtk
 from colors import COLORS
 

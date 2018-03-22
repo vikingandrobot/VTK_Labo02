@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Defines the COLORS list that contains the color to use
 # to display each piece id
 
