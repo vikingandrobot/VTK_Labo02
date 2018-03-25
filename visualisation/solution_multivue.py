@@ -5,6 +5,7 @@ from shape_creation import createShapes
 from numpy import genfromtxt
 
 ids = genfromtxt('solution.txt', delimiter=' ', dtype=(int))
+ids[:] = [[ele - 1 for ele in sub] for sub in ids]
 
 # Create shapes from ids
 shapes = createShapes(ids)
