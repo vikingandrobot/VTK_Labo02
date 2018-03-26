@@ -58,6 +58,7 @@ for renderer in renderers:
 renWin = vtk.vtkRenderWindow()
 for ren in renderers:
     renWin.AddRenderer(ren)
+# A4 format at 144 dpi
 renWin.SetSize(1190, 1684)
 
 # Set the same camera for every renderer
