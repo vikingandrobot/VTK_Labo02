@@ -19,16 +19,20 @@ class vtkTimerCallback():
         self.INV_DELTA = delta_t / duration
         self.step = 0
         self.pieceIndex = 0
+        self.ended = False
 
     def execute(self, obj, event):
         if (self.pieceIndex >= len(self.pieces)):
+            if not (self.ended):
+                self.ended = True
+                writer.End()
+                sys.exit(1)
             return
-
 
         if (self.step < self.duration):
             i = 0
             shape = self.pieces[self.pieceIndex]
-            v = [sub * -1 for sub in self.vectors[self.pieceIndex]]
+            v = self.vectors[self.pieceIndex]
             shape.SetPosition(
                 shape.GetPosition()[0] + self.INV_DELTA * v[0],
                 shape.GetPosition()[1] + self.INV_DELTA * v[1],
@@ -39,9 +43,12 @@ class vtkTimerCallback():
             self.step += self.DELTA_T
             iren = obj
             iren.GetRenderWindow().Render()
+            self.windowToImageFilter.Modified()
+            self.writer.Write()
         else:
             self.pieceIndex = self.pieceIndex + 1
             self.step = 0
+
 
 # Check number of arguments
 if len(sys.argv) != 2:
@@ -113,9 +120,9 @@ iren.SetRenderWindow(renWin)
 # Invert the translating vectors
 
 v = [[ele * -1 for ele in sub] for sub in translateVectors]
-cb = vtkTimerCallback(pieces, translateVectors, 1000, 40)
+cb = vtkTimerCallback(pieces, v, 1000, 100)
 iren.AddObserver('TimerEvent', cb.execute)
-timerId = iren.CreateRepeatingTimer(40);
+timerId = iren.CreateRepeatingTimer(100);
 
 # Here we specify a particular interactor style.
 style = vtk.vtkInteractorStyleTrackballCamera()
@@ -126,6 +133,19 @@ ren.GetActiveCamera().Azimuth(60)
 ren.GetActiveCamera().Elevation(35)
 
 renWin.Render()
+
+windowToImageFilter = vtk.vtkWindowToImageFilter()
+windowToImageFilter.SetInput(renWin)
+windowToImageFilter.Update()
+
+writer = vtk.vtkOggTheoraWriter()
+writer.SetInputConnection(windowToImageFilter.GetOutputPort())
+writer.SetFileName("test.avi")
+writer.SetRate(25)
+writer.Start()
+
+cb.writer = writer
+cb.windowToImageFilter = windowToImageFilter
 
 # Initialize and start the event loop.
 iren.Initialize()
