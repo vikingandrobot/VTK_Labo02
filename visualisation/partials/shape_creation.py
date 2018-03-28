@@ -54,3 +54,19 @@ def createPieces(ids):
                 pieces[pieceIndex].AddPart(cube)
 
     return pieces
+
+
+def createOutlineCube():
+    outlineCube = vtk.vtkCubeSource()
+    outlineCube.SetXLength(3)
+    outlineCube.SetYLength(3)
+    outlineCube.SetZLength(3)
+    outline = vtk.vtkOutlineFilter()
+    outline.SetInputConnection(outlineCube.GetOutputPort())
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(outline.GetOutputPort())
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    actor.SetPosition(1, 1, 1)
+    actor.GetProperty().SetColor(0, 0, 0)
+    return actor

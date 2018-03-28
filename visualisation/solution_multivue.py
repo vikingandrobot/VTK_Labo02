@@ -3,6 +3,7 @@
 import sys
 import vtk
 from partials.shape_creation import createPieces
+from partials.shape_creation import createOutlineCube
 from numpy import genfromtxt
 
 # Check number of arguments
@@ -37,22 +38,11 @@ for renNumber in range(0, 8):
             renderers[renNumber].AddActor(pieces[pieceNumber])
 
 # outline
-outlineCube = vtk.vtkCubeSource()
-outlineCube.SetXLength(3)
-outlineCube.SetYLength(3)
-outlineCube.SetZLength(3)
-outline = vtk.vtkOutlineFilter()
-outline.SetInputConnection(outlineCube.GetOutputPort())
-mapper2 = vtk.vtkPolyDataMapper()
-mapper2.SetInputConnection(outline.GetOutputPort())
-actor2 = vtk.vtkActor()
-actor2.SetMapper(mapper2)
-actor2.SetPosition(1, 1, 1)
-actor2.GetProperty().SetColor(0, 0, 0)
+outlineCubeActor = createOutlineCube()
 
 # assign actor to the renderer
 for renderer in renderers:
-    renderer.AddActor(actor2)
+    renderer.AddActor(outlineCubeActor)
 
 # render window
 renWin = vtk.vtkRenderWindow()
