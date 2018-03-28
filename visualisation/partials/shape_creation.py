@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# This file contains function to create the shapes needed in both scripts
+# to render solutions and to animate them.
+
 import vtk
 from partials.colors import COLORS
 
@@ -49,14 +52,19 @@ def createPieces(ids):
 
                 # Create the cube, set its color, and add it to the list of
                 # pieces
-                cube = createCubeActor(cubeNumber % 3, cubeNumber // 3, stageNumber)
-                cube.GetProperty().SetColor(COLORS[pieceIndex][0], COLORS[pieceIndex][1], COLORS[pieceIndex][2])
+                cube = createCubeActor(cubeNumber % 3, cubeNumber // 3,
+                    stageNumber)
+                cube.GetProperty().SetColor(COLORS[pieceIndex][0],
+                    COLORS[pieceIndex][1], COLORS[pieceIndex][2])
                 pieces[pieceIndex].AddPart(cube)
 
     return pieces
 
 
+# Create the outline cube
+# From the example here : https://www.vtk.org/Wiki/VTK/Examples/Cxx/PolyData/Outline
 def createOutlineCube():
+    # Source cube of size 3
     outlineCube = vtk.vtkCubeSource()
     outlineCube.SetXLength(3)
     outlineCube.SetYLength(3)
@@ -67,6 +75,8 @@ def createOutlineCube():
     mapper.SetInputConnection(outline.GetOutputPort())
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
+
+    # Center and black
     actor.SetPosition(1, 1, 1)
     actor.GetProperty().SetColor(0, 0, 0)
     return actor

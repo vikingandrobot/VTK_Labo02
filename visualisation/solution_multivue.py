@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# This file contains the script to display static images of given solutions.
+
 import sys
 import vtk
 from partials.shape_creation import createPieces
@@ -61,7 +63,7 @@ for renderer in renderers:
 
 # Set the camera to display pieces nicely
 mainCamera.SetPosition(0, 2, 13)
-mainCamera.Azimuth(45)
+mainCamera.Azimuth(60)
 mainCamera.Elevation(20)
 
 # The vtkRenderWindowInteractor class watches for events (

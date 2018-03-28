@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
+# This file contains the script to play the animation of the pieces
+# of the puzzle solution
+
 import sys
 import vtk
 from partials.shape_creation import createPieces
 from partials.shape_creation import createOutlineCube
-from numpy import *
+import numpy as np
+
 
 class vtkTimerCallback():
     def __init__(self):
-        self.delta = 25 / 2000
+        self.delta = 100 / 2000
         self.step = 0
         self.pieceIndex = 0
 
@@ -28,7 +32,7 @@ class vtkTimerCallback():
             )
             i += 1
 
-            self.step += 25
+            self.step += 100
             iren = obj
             iren.GetRenderWindow().Render()
         else:
@@ -36,13 +40,13 @@ class vtkTimerCallback():
             self.step = 0
 
 # Check number of arguments
-if len(sys.argv) != 3:
-    print("Please enter the input solution filename and the output filename as arguments.")
-    print("Usage: python3 solution_multivue.py <input filename> <output filename>")
+if len(sys.argv) != 2:
+    print("Please enter the input solution filename as argument.")
+    print("Usage: python3 solution_multivue.py <input filename>")
     sys.exit(1)
 
 # Read pieces ids from input text file
-ids = genfromtxt(sys.argv[1], delimiter=' ', dtype=(int))
+ids = np.genfromtxt(sys.argv[1], delimiter=' ', dtype=(int))
 
 # Create pieces from ids
 pieces = createPieces(ids)
@@ -70,7 +74,7 @@ for shape in pieces:
 
     translateVectors.append(translateVector)
 
-norms = apply_along_axis(linalg.norm, 1, translateVectors)
+norms = np.apply_along_axis(np.linalg.norm, 1, translateVectors)
 for i in range(0, len(translateVectors)):
     for j in range(0, len(translateVectors[i])):
         translateVectors[i][j] = translateVectors[i][j] / norms[i] * 4
@@ -106,7 +110,7 @@ cb = vtkTimerCallback()
 cb.shapes = pieces
 cb.vectors = translateVectors
 iren.AddObserver('TimerEvent', cb.execute)
-timerId = iren.CreateRepeatingTimer(25);
+timerId = iren.CreateRepeatingTimer(50);
 
 # Here we specify a particular interactor style.
 style = vtk.vtkInteractorStyleTrackballCamera()
@@ -114,7 +118,7 @@ iren.SetInteractorStyle(style)
 
 renWin.Render()
 
-ren.GetActiveCamera().Azimuth(45)
+ren.GetActiveCamera().Azimuth(70)
 ren.GetActiveCamera().Elevation(20)
 
 # Initialize and start the event loop.
