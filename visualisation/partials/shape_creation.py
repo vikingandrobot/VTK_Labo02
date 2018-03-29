@@ -20,6 +20,7 @@ def createCubeActor(x, y, z):
 
 
 # Create the shapes using an array of pieces ids.
+# The pieces are ordered following the increasing x axis.
 def createPieces(ids):
     # A dictionary giving the pieces index in the list by Id
     indexDict = {}

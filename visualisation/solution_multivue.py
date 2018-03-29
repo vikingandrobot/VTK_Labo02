@@ -8,6 +8,10 @@
 # created using VTK's source cube and assembling them together to shape
 # the pieces.
 # This building occurs in the partials/shape_creation.py file.
+# The input file convention is the following:
+# - The file must contain three lines of integers separated by a space
+# - Each line represent a (x, y) plane of the containing cube,
+#   the line number being the z position of said plane
 
 import sys
 import vtk
