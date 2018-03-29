@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-# This file contains function to create the shapes needed in both scripts
+# This file contains the function to create the pieces needed in both scripts
 # to render solutions and to animate them.
+# It also contains the function to create the cube container outline
 
 import vtk
 from partials.colors import COLORS

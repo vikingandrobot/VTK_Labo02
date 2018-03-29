@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
 # This file contains the script to display static images of given solutions.
+# It reads an input .txt file from the user and display each piece the solution
+# in different renderers showing the steps to make the solution.
+# The pieces are built by reading an array of three array of integers,
+# which represent the pieces id in the containing cube. The pieces are then
+# created using VTK's source cube and assembling them together to shape
+# the pieces.
+# This building occurs in the partials/shape_creation.py file.
 
 import sys
 import vtk
@@ -76,7 +83,7 @@ iren.SetInteractorStyle(style)
 
 renWin.Render()
 
-# screenshot code:
+# Resources to save the scene to a PDF file
 w2if = vtk.vtkWindowToImageFilter()
 w2if.SetInput(renWin)
 w2if.Update()

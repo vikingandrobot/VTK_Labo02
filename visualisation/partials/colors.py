@@ -3,7 +3,6 @@
 # This file defines the COLORS list that contains the colors to use
 # to display each piece id
 
-
 # RGB values
 COLORS = [
     [56, 29, 42],

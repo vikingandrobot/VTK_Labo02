@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
 # This file contains the script to play the animation of the pieces
-# of the puzzle solution
+# of the puzzle solution. The program plays the animation in a window,
+# and saves the animation to a .avi file which name is specified by the user.
+# Fun fact: if you move the camera while rendering, the output file will also
+# be affected. You can now let your creativity speak and customize the
+# rendering of the animation (amazing!)
 
 import sys
 import vtk
 from partials.shape_creation import createPieces
 from partials.shape_creation import createOutlineCube
 import numpy as np
+
 
 # Callback to animate the pieces. It moves the pieces to their position in
 # the cube one by one, saving a frame to the video output file each time.
@@ -23,42 +28,41 @@ class vtkTimerCallback():
         self.INV_DELTA = delta_t / duration
         self.step = 0
         self.pieceIndex = 0
-        self.ended = False
 
     def execute(self, obj, event):
         iren = obj
         if (self.pieceIndex >= len(self.pieces)):
-            if not (self.ended):
-                self.ended = True
-                writer.End()
-                iren.GetRenderWindow().Finalize();
-                iren.TerminateApp();
+            writer.End()
+            iren.GetRenderWindow().Finalize();
+            iren.TerminateApp();
             return
 
         if (self.step < self.duration):
-            i = 0
             shape = self.pieces[self.pieceIndex]
+            position = shape.GetPosition()
             v = self.vectors[self.pieceIndex]
             shape.SetPosition(
-                shape.GetPosition()[0] + self.INV_DELTA * v[0],
-                shape.GetPosition()[1] + self.INV_DELTA * v[1],
-                shape.GetPosition()[2] + self.INV_DELTA * v[2],
+                position[0] + self.INV_DELTA * v[0],
+                position[1] + self.INV_DELTA * v[1],
+                position[2] + self.INV_DELTA * v[2],
             )
-            i += 1
 
+            # Update the step
             self.step += self.DELTA_T
+
+            # Render the window and save the video
             iren.GetRenderWindow().Render()
             self.w2if.Modified()
-            # self.writer.Write()
+            self.writer.Write()
         else:
             self.pieceIndex = self.pieceIndex + 1
             self.step = 0
 
 
 # Check number of arguments
-if len(sys.argv) != 2:
-    print("Please enter the input solution filename as argument.")
-    print("Usage: python3 solution_multivue.py <input filename>")
+if len(sys.argv) != 3:
+    print("Please enter the input solution filename and the output filename as arguments.")
+    print("Usage: python3 solution_multivue.py <input filename> <output filename>")
     sys.exit(1)
 
 # Read pieces ids from input text file
@@ -72,6 +76,7 @@ centerX = 1
 centerY = 1
 centerZ = 1
 
+# The translation vector to use to animate the pieces
 translateVectors = []
 
 # For each piece
@@ -94,13 +99,14 @@ for i in range(0, len(translateVectors)):
     for j in range(0, len(translateVectors[i])):
         translateVectors[i][j] = translateVectors[i][j] / norms[i] * FACTOR
 
-# Move the pieces to its starting position using the vectors
+# Move the pieces to their starting position using the vectors
 for i in range(0, len(pieces)):
     piece = pieces[i]
     for cubeActor in piece.GetParts():
-        cubeActor.SetPosition(cubeActor.GetPosition()[0] + translateVectors[i][0],
-        cubeActor.GetPosition()[1] + translateVectors[i][1],
-        cubeActor.GetPosition()[2] + translateVectors[i][2])
+        position = cubeActor.GetPosition()
+        cubeActor.SetPosition(position[0] + translateVectors[i][0],
+        position[1] + translateVectors[i][1],
+        position[2] + translateVectors[i][2])
 
 
 # Create the outline cube
@@ -122,8 +128,7 @@ renWin.SetSize(1280, 720)
 iren = vtk.vtkRenderWindowInteractor()
 iren.SetRenderWindow(renWin)
 
-# Invert the translating vectors
-
+# Invert the translation vectors
 v = [[ele * -1 for ele in sub] for sub in translateVectors]
 
 # Here we specify a particular interactor style.
@@ -136,16 +141,18 @@ ren.GetActiveCamera().Elevation(35)
 
 renWin.Render()
 
+# Create resources to export the video
 windowToImageFilter = vtk.vtkWindowToImageFilter()
 windowToImageFilter.SetInput(renWin)
 windowToImageFilter.Update()
 
 writer = vtk.vtkOggTheoraWriter()
 writer.SetInputConnection(windowToImageFilter.GetOutputPort())
-writer.SetFileName("test.avi")
+writer.SetFileName(sys.argv[2] + ".avi")
 writer.SetRate(25)
 writer.Start()
 
+# Register the callback for the animation
 cb = vtkTimerCallback(pieces, v, writer, windowToImageFilter, 1000, 40)
 iren.AddObserver('TimerEvent', cb.execute)
 timerId = iren.CreateRepeatingTimer(40);
