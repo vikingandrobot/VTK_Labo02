@@ -9,11 +9,15 @@ from partials.shape_creation import createPieces
 from partials.shape_creation import createOutlineCube
 import numpy as np
 
-# Callback to animate the pieces
+# Callback to animate the pieces. It moves the pieces to their position in
+# the cube one by one, saving a frame to the video output file each time.
+# When the animation is complete, it ends the program
 class vtkTimerCallback():
-    def __init__(self, pieces, vectors, duration, delta_t):
+    def __init__(self, pieces, vectors, writer, w2if, duration, delta_t):
         self.pieces = pieces
         self.vectors = vectors
+        self.writer = writer
+        self.w2if = w2if
         self.duration = duration
         self.DELTA_T = delta_t
         self.INV_DELTA = delta_t / duration
@@ -22,11 +26,13 @@ class vtkTimerCallback():
         self.ended = False
 
     def execute(self, obj, event):
+        iren = obj
         if (self.pieceIndex >= len(self.pieces)):
             if not (self.ended):
                 self.ended = True
                 writer.End()
-                sys.exit(1)
+                iren.GetRenderWindow().Finalize();
+                iren.TerminateApp();
             return
 
         if (self.step < self.duration):
@@ -41,10 +47,9 @@ class vtkTimerCallback():
             i += 1
 
             self.step += self.DELTA_T
-            iren = obj
             iren.GetRenderWindow().Render()
-            self.windowToImageFilter.Modified()
-            self.writer.Write()
+            self.w2if.Modified()
+            # self.writer.Write()
         else:
             self.pieceIndex = self.pieceIndex + 1
             self.step = 0
@@ -120,9 +125,6 @@ iren.SetRenderWindow(renWin)
 # Invert the translating vectors
 
 v = [[ele * -1 for ele in sub] for sub in translateVectors]
-cb = vtkTimerCallback(pieces, v, 1000, 100)
-iren.AddObserver('TimerEvent', cb.execute)
-timerId = iren.CreateRepeatingTimer(100);
 
 # Here we specify a particular interactor style.
 style = vtk.vtkInteractorStyleTrackballCamera()
@@ -144,8 +146,9 @@ writer.SetFileName("test.avi")
 writer.SetRate(25)
 writer.Start()
 
-cb.writer = writer
-cb.windowToImageFilter = windowToImageFilter
+cb = vtkTimerCallback(pieces, v, writer, windowToImageFilter, 1000, 40)
+iren.AddObserver('TimerEvent', cb.execute)
+timerId = iren.CreateRepeatingTimer(40);
 
 # Initialize and start the event loop.
 iren.Initialize()
